@@ -43,7 +43,8 @@ impl ClipConfig {
 
 #[pyclass]
 #[derive(Clone)]
-pub struct OpenAIConfig {
+pub struct CloudConfig {
+    pub provider: Option<String>,
     pub model: Option<String>,
     pub api_key: Option<String>,
     pub chunk_size: Option<usize>,
@@ -75,11 +76,17 @@ impl JinaConfig {
 }
 
 #[pymethods]
-impl OpenAIConfig {
+impl CloudConfig {
     #[new]
-    #[pyo3(signature = (model=None, api_key=None, chunk_size=None))]
-    pub fn new(model: Option<String>, api_key: Option<String>, chunk_size: Option<usize>) -> Self {
+    #[pyo3(signature = (provider = "OpenAI".to_string(), model=None, api_key=None, chunk_size=None))]
+    pub fn new(
+        provider: Option<String>,
+        model: Option<String>,
+        api_key: Option<String>,
+        chunk_size: Option<usize>,
+    ) -> Self {
         Self {
+            provider,
             model,
             api_key,
             chunk_size,
@@ -120,7 +127,7 @@ impl AudioDecoderConfig {
 pub struct EmbedConfig {
     pub bert: Option<BertConfig>,
     pub clip: Option<ClipConfig>,
-    pub openai: Option<OpenAIConfig>,
+    pub cloud: Option<CloudConfig>,
     pub jina: Option<JinaConfig>,
     pub audio_decoder: Option<AudioDecoderConfig>,
 }
@@ -128,18 +135,18 @@ pub struct EmbedConfig {
 #[pymethods]
 impl EmbedConfig {
     #[new]
-    #[pyo3(signature = (bert=None, clip=None, openai=None, jina=None, audio_decoder=None))]
+    #[pyo3(signature = (bert=None, clip=None, cloud=None, jina=None, audio_decoder=None))]
     pub fn new(
         bert: Option<BertConfig>,
         clip: Option<ClipConfig>,
-        openai: Option<OpenAIConfig>,
+        cloud: Option<CloudConfig>,
         jina: Option<JinaConfig>,
         audio_decoder: Option<AudioDecoderConfig>,
     ) -> Self {
         Self {
             bert,
             clip,
-            openai,
+            cloud,
             jina,
             audio_decoder,
         }

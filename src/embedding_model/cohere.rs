@@ -59,12 +59,11 @@ impl CohereEmbeder {
                 .send()
                 .await
                 .unwrap();
-            let data = response.json::<CohereEmbedResponse>().await.unwrap();
-            data
+            response.json::<CohereEmbedResponse>().await.unwrap()
         });
 
         let encodings = data.embeddings;
-    
+
         Ok(encodings)
     }
 }
