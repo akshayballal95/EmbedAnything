@@ -36,8 +36,6 @@ mod tests {
 
         File::create(&pdf_file).unwrap();
 
-        let error = PdfProcessor::extract_text(&pdf_file).unwrap_err();
-
         let pdf_file = "test_files/test.pdf";
         let text = PdfProcessor::extract_text(&PathBuf::from(pdf_file)).unwrap();
         assert_eq!(text.len(), 4271);
