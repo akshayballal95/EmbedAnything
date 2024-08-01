@@ -52,5 +52,5 @@ fn main() {
     .unwrap()
     .unwrap();
 
-    println!("{:?}", _out[0].text);
+    println!("{:#?}", _out[0].text.as_ref().unwrap());
 }

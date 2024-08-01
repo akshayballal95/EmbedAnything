@@ -4,7 +4,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use std::{sync::Arc};
+use std::sync::Arc;
 
 use super::embed::TextEmbed;
 use crate::embedding_model::normalize_l2;
