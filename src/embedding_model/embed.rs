@@ -2,6 +2,8 @@ use pyo3::prelude::*;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::rc::Rc;
+use std::sync::Arc;
 
 use super::bert::BertEmbeder;
 use super::clip::ClipEmbeder;
@@ -17,26 +19,19 @@ pub struct OpenAIEmbedResponse {
 
 #[derive(Deserialize, Debug, Default)]
 pub struct CohereEmbedResponse {
-    pub embeddings: Vec<Vec<f32>>,
+    pub embeddings: Vec<Arc<Vec<f32>>>,
 }
 
-#[pyclass]
+#[pyclass(unsendable)]
 #[derive(Deserialize, Debug, Clone, Default)]
 pub struct EmbedData {
-    #[pyo3(get, set)]
-    pub embedding: Vec<f32>,
-    #[pyo3(get, set)]
+    pub embedding: Arc<Vec<f32>>,
     pub text: Option<String>,
-    #[pyo3(get, set)]
     pub metadata: Option<HashMap<String, String>>,
 }
-
-#[pymethods]
 impl EmbedData {
-    #[new]
-    #[pyo3(signature = (embedding, text=None, metadata=None))]
     pub fn new(
-        embedding: Vec<f32>,
+        embedding: Arc<Vec<f32>>,
         text: Option<String>,
         metadata: Option<HashMap<String, String>>,
     ) -> Self {
@@ -57,8 +52,9 @@ impl EmbedData {
     }
 }
 
+
 pub trait TextEmbed {
-    fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error>;
+    fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error>;
 }
 pub enum Embeder {
     Cloud(CloudEmbeder),
@@ -68,7 +64,7 @@ pub enum Embeder {
 }
 
 impl Embeder {
-    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         match self {
             Embeder::Cloud(embeder) => embeder.embed(text_batch),
             Embeder::Jina(embeder) => embeder.embed(text_batch),
@@ -84,7 +80,7 @@ pub enum CloudEmbeder {
 }
 
 impl CloudEmbeder {
-    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         match self {
             Self::OpenAI(embeder) => embeder.embed(text_batch),
             Self::Cohere(embeder) => embeder.embed(text_batch),
@@ -93,7 +89,7 @@ impl CloudEmbeder {
 }
 
 impl TextEmbed for CloudEmbeder {
-    fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         self.embed(text_batch)
     }
 }

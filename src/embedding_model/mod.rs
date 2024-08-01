@@ -1,6 +1,6 @@
 //! This module contains the different embedding models that can be used to generate embeddings for the text data.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use candle_core::Tensor;
 use embed::{EmbedData, TextEmbed};
@@ -15,20 +15,20 @@ pub mod jina;
 pub mod openai;
 
 pub fn get_text_metadata(
-    encodings: &[Vec<f32>],
+    encodings: &[Arc<Vec<f32>>],
     text_batch: &Vec<String>,
     metadata: Option<HashMap<String, String>>,
 ) -> anyhow::Result<Vec<EmbedData>> {
     let final_embeddings = encodings
         .iter()
         .zip(text_batch)
-        .map(|(data, text)| EmbedData::new(data.to_vec(), Some(text.clone()), metadata.clone()))
+        .map(|(data, text)| EmbedData::new(Arc::clone(data), Some(text.clone()), metadata.clone()))
         .collect::<Vec<_>>();
     Ok(final_embeddings)
 }
 
 pub fn get_audio_metadata<T: AsRef<std::path::Path>>(
-    encodings: Vec<Vec<f32>>,
+    encodings: Vec<Arc<Vec<f32>>>,
     segments: Vec<Segment>,
     audio_file: T,
 ) -> Result<Vec<EmbedData>, anyhow::Error> {
@@ -47,7 +47,7 @@ pub fn get_audio_metadata<T: AsRef<std::path::Path>>(
                 audio_file.as_ref().to_str().unwrap().to_string(),
             );
             EmbedData::new(
-                data.to_vec(),
+                Arc::clone(data),
                 Some(segments[i].dr.text.clone()),
                 Some(metadata),
             )

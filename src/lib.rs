@@ -261,8 +261,9 @@ pub fn embed_query(
 /// let embeddings = embed_file(file_name, embeder, config).unwrap();
 /// ```
 /// This will output the embeddings of the file using the OpenAI embedding model.
+
 #[pyfunction]
-#[pyo3(signature = (file_name, embeder, config=None, adapter=None))]
+#[pyo3(signature = (file_name, embeder, config=None, adapter = None))]
 pub fn embed_file(
     file_name: &str,
     embeder: &str,
@@ -302,7 +303,7 @@ pub fn embed_file(
         Python::with_gil(|py| {
             let conversion_fn = adapter.getattr(py, "convert")?;
             let upsert_fn = adapter.getattr(py, "upsert")?;
-            let converted_embeddings = conversion_fn.call1(py, (embeddings.clone(),)).unwrap();
+            let converted_embeddings = conversion_fn.call1(py, (embeddings,)).unwrap();
             upsert_fn.call1(py, (&converted_embeddings,)).unwrap();
 
             // return none
@@ -425,7 +426,7 @@ pub fn embed_directory(
         Python::with_gil(|py| {
             let conversion_fn = adapter.getattr(py, "convert")?;
             let upsert_fn = adapter.getattr(py, "upsert")?;
-            let converted_embeddings = conversion_fn.call1(py, (embeddings.clone(),)).unwrap();
+            let converted_embeddings = conversion_fn.call1(py, (embeddings,)).unwrap();
             upsert_fn.call1(py, (&converted_embeddings,)).unwrap();
 
             // return none
@@ -546,7 +547,6 @@ fn embed_anything(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(embed_directory, m)?)?;
     m.add_function(wrap_pyfunction!(embed_query, m)?)?;
     m.add_function(wrap_pyfunction!(embed_webpage, m)?)?;
-    m.add_class::<embedding_model::embed::EmbedData>()?;
     m.add_class::<BertConfig>()?;
     m.add_class::<ClipConfig>()?;
     m.add_class::<CloudConfig>()?;

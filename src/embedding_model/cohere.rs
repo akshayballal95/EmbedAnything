@@ -1,3 +1,5 @@
+use std::{rc::Rc, sync::Arc};
+
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::json;
@@ -21,7 +23,7 @@ impl Default for CohereEmbeder {
 }
 
 impl TextEmbed for CohereEmbeder {
-    fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         self.embed(text_batch)
     }
 }
@@ -38,7 +40,7 @@ impl CohereEmbeder {
         }
     }
 
-    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         let client = Client::new();
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_io()

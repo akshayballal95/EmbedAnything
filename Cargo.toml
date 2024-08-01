@@ -10,7 +10,7 @@ exclude = ["test_files/*", "python", "*.py", "pyproject.toml", "examples/images/
 
 [dependencies]
 # Data Serialization
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0.196", features = ["derive", "rc"] }
 serde_json = "1.0.112"
 
 # HTTP Client

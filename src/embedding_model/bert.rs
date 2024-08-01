@@ -4,6 +4,8 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
+use std::{rc::Rc, sync::Arc};
+
 use super::embed::TextEmbed;
 use crate::embedding_model::normalize_l2;
 use anyhow::Error as E;
@@ -77,20 +79,20 @@ impl BertEmbeder {
         Ok(Tensor::stack(&token_ids, 0)?)
     }
 
-    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         let token_ids = self.tokenize_batch(text_batch, &self.model.device).unwrap();
         let token_type_ids = token_ids.zeros_like().unwrap();
         let embeddings = self.model.forward(&token_ids, &token_type_ids).unwrap();
         let (_n_sentence, n_tokens, _hidden_size) = embeddings.dims3().unwrap();
         let embeddings = (embeddings.sum(1).unwrap() / (n_tokens as f64)).unwrap();
         let embeddings = normalize_l2(&embeddings).unwrap();
-        let encodings = embeddings.to_vec2::<f32>().unwrap();
+        let encodings = embeddings.to_vec2::<f32>().unwrap().into_iter().map(|x| Arc::new(x)).collect::<Vec<_>>();
         Ok(encodings)
     }
 }
 
 impl TextEmbed for BertEmbeder {
-    fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         self.embed(text_batch)
     }
 }

@@ -23,35 +23,36 @@ fn main() {
     let embed_data = embed_webpage(url, &embeder, Some(&embed_config), None)
         .unwrap()
         .unwrap();
-    let embeddings: Vec<Vec<f32>> = embed_data
+    let embeddings: Vec<f32> = embed_data
         .iter()
-        .map(|data| data.embedding.clone())
+        .flat_map(|data| data.embedding.iter().cloned())
         .collect();
 
-    // Convert embeddings to a tensor
-    let embeddings = Tensor::from_vec(
-        embeddings.iter().flatten().cloned().collect::<Vec<f32>>(),
-        (embeddings.len(), embeddings[0].len()),
+    let num_embeddings = embed_data.len();
+    let embedding_dim = embed_data[0].embedding.len();
+
+    let embeddings_tensor = Tensor::from_vec(
+        embeddings,
+        (num_embeddings, embedding_dim),
         &candle_core::Device::Cpu,
     )
     .unwrap();
 
     let query = vec!["Rust for web scraping".to_string()];
-    let query_embedding: Vec<f32> = embed_query(query, &embeder, Some(&embed_config))
+    let query_embedding = embed_query(query, &embeder, Some(&embed_config))
         .unwrap()
         .iter()
-        .map(|data| data.embedding.clone())
-        .flatten()
-        .collect();
+        .flat_map(|data| data.embedding.iter().cloned())
+        .collect::<Vec<f32>>();
 
     let query_embedding_tensor = Tensor::from_vec(
-        query_embedding.clone(),
-        (1, query_embedding.len()),
+        query_embedding,
+        (1, embedding_dim),
         &candle_core::Device::Cpu,
     )
     .unwrap();
 
-    let similarities = embeddings
+    let similarities = embeddings_tensor
         .matmul(&query_embedding_tensor.transpose(0, 1).unwrap())
         .unwrap()
         .detach()

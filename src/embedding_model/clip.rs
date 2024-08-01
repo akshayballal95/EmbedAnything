@@ -4,7 +4,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use anyhow::Error as E;
 
@@ -165,7 +165,7 @@ impl ClipEmbeder {
         Ok(images)
     }
 
-    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Vec<f32>>, anyhow::Error> {
+    pub fn embed(&self, text_batch: &[String]) -> Result<Vec<Arc<Vec<f32>>>, anyhow::Error> {
         let (input_ids, _vec_seq) = ClipEmbeder::tokenize_sequences(
             Some(text_batch.to_vec()),
             &self.tokenizer,
@@ -178,7 +178,7 @@ impl ClipEmbeder {
             .get_text_features(&input_ids)
             .unwrap()
             .to_vec2::<f32>()
-            .unwrap();
+            .unwrap().into_iter().map(|x| Arc::new(x)).collect::<Vec<_>>();
 
         Ok(encodings)
     }
@@ -197,14 +197,14 @@ impl EmbedImage for ClipEmbeder {
             .get_image_features(&images)
             .unwrap()
             .to_vec2::<f32>()
-            .unwrap();
+            .unwrap().into_iter().map(|x| Arc::new(x)).collect::<Vec<_>>();
 
         let embeddings = encodings
             .iter()
             .zip(image_paths)
             .map(|(data, path)| {
                 EmbedData::new(
-                    data.to_vec(),
+                    Arc::clone(data),
                     Some(path.as_ref().to_str().unwrap().to_string()),
                     None,
                 )
@@ -224,13 +224,13 @@ impl EmbedImage for ClipEmbeder {
             .unwrap()
             .unsqueeze(0)
             .unwrap();
-        let encoding = &self
-            .model
-            .get_image_features(&image)
-            .unwrap()
-            .to_vec2::<f32>()
-            .unwrap()[0];
-        Ok(EmbedData::new(encoding.to_vec(), None, metadata.clone()))
+        let encodings = self
+        .model
+        .get_image_features(&image)
+        .unwrap().squeeze(0).unwrap()
+        .to_vec1::<f32>()
+        .unwrap();
+        Ok(EmbedData::new(Arc::new(encodings), None, metadata.clone()))
     }
 }
 

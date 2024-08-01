@@ -22,18 +22,16 @@ fn main() {
     )
     .unwrap()
     .unwrap();
+
+    let num_embeddings = out.len();
+    let embedding_dim = out[0].embedding.len();
     let query_emb_data =
         embed_query(vec!["Photo of a monkey".to_string()], "Clip", Some(&config)).unwrap();
-    let n_vectors = out.len();
     let out_embeddings = Tensor::from_vec(
         out.iter()
-            .map(|embed| embed.embedding.clone())
-            .collect::<Vec<_>>()
-            .iter()
-            .flatten()
-            .cloned()
-            .collect::<Vec<f32>>(),
-        (n_vectors, out[0].embedding.len()),
+            .flat_map(|embed| embed.embedding.iter().cloned())
+            .collect::<Vec<_>>(),
+        (num_embeddings, out[0].embedding.len()),
         &Device::Cpu,
     )
     .unwrap();
@@ -46,13 +44,9 @@ fn main() {
     let query_embeddings = Tensor::from_vec(
         query_emb_data
             .iter()
-            .map(|embed| embed.embedding.clone())
-            .collect::<Vec<_>>()
-            .iter()
-            .flatten()
-            .cloned()
-            .collect::<Vec<f32>>(),
-        (1, query_emb_data[0].embedding.len()),
+            .flat_map(|embed| embed.embedding.iter().cloned())
+            .collect::<Vec<_>>(),
+        (1, embedding_dim),
         &Device::Cpu,
     )
     .unwrap();
