@@ -4,7 +4,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use std::{collections::HashMap, rc::Rc, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Error as E;
 
@@ -178,7 +178,7 @@ impl ClipEmbeder {
             .get_text_features(&input_ids)
             .unwrap()
             .to_vec2::<f32>()
-            .unwrap().into_iter().map(|x| Arc::new(x)).collect::<Vec<_>>();
+            .unwrap().into_iter().map(Arc::new).collect::<Vec<_>>();
 
         Ok(encodings)
     }
@@ -197,7 +197,7 @@ impl EmbedImage for ClipEmbeder {
             .get_image_features(&images)
             .unwrap()
             .to_vec2::<f32>()
-            .unwrap().into_iter().map(|x| Arc::new(x)).collect::<Vec<_>>();
+            .unwrap().into_iter().map(Arc::new).collect::<Vec<_>>();
 
         let embeddings = encodings
             .iter()

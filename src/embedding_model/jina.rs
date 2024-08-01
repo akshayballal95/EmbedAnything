@@ -4,7 +4,7 @@ extern crate intel_mkl_src;
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 
-use std::{rc::Rc, sync::Arc};
+use std::{sync::Arc};
 
 use super::embed::TextEmbed;
 use crate::embedding_model::normalize_l2;
@@ -88,7 +88,7 @@ impl JinaEmbeder {
         let embeddings = (embeddings.sum(1).unwrap() / (n_tokens as f64)).unwrap();
         let embeddings = normalize_l2(&embeddings).unwrap();
 
-        let encodings = embeddings.to_vec2::<f32>().unwrap().into_iter().map(|x| Arc::new(x)).collect();
+        let encodings = embeddings.to_vec2::<f32>().unwrap().into_iter().map(Arc::new).collect();
         Ok(encodings)
     }
 }

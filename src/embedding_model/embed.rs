@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::rc::Rc;
 use std::sync::Arc;
 
 use super::bert::BertEmbeder;

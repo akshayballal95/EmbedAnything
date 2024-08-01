@@ -1,6 +1,6 @@
 //! This module contains the different embedding models that can be used to generate embeddings for the text data.
 
-use std::{collections::HashMap, rc::Rc, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use candle_core::Tensor;
 use embed::{EmbedData, TextEmbed};
